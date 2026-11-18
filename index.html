@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#061e28">
+<title>Krillion Clone · Ocean Trivia</title>
+<style>
+:root {color-scheme: dark; --ink:#f0fbf7; --sea:#071d29; --light:#c9ee8c; --muted:#adbec0; --edge:#28414b}
+* {box-sizing:border-box}
+body {margin:0;background:radial-gradient(ellipse at 70% 15%,#0d3542 0,transparent 54%),var(--sea);color:var(--ink);font-family:Inter,system-ui,sans-serif;min-height:100vh}
+main,header,footer {width:min(1140px,92%);margin:auto}
+header,footer,.row {display:flex;align-items:center;justify-content:space-between;gap:16px}
+header {height:80px;border-bottom:1px solid var(--edge)}
+.brand {font-size:27px;letter-spacing:-1.7px;font-weight:800}
+.brand i {font-style:normal;color:var(--light)}
+button,input,textarea {font:inherit}
+button {cursor:pointer;border:1px solid var(--edge);border-radius:12px;padding:13px 18px;color:var(--ink);background:#102d37}
+button:hover {border-color:var(--light)}
+button:focus-visible,input:focus-visible,summary:focus-visible,textarea:focus-visible {outline:3px solid var(--light);outline-offset:3px}
+button.primary {background:var(--light);color:#152d22;font-weight:750;border-color:transparent}
+header span,.micro,.depth-label,.zone-name,th,.tier,.tag {font:11px/1.5 ui-monospace,monospace;text-transform:uppercase;letter-spacing:1.3px}
+header strong {font-variant-numeric:tabular-nums}
+.layout {display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:clamp(28px,7vw,96px);padding:42px 0}
+h1,h2,h3,p {margin:0}
+h1 {font-weight:620;font-size:clamp(48px,6vw,82px);line-height:.99;letter-spacing:-.065em;margin:20px 0}
+h1 em {font-family:Georgia,serif;color:var(--light);font-weight:400}
+p {color:var(--muted);line-height:1.65}
+.tag {color:#9cdbca}
+.lead {max-width:440px;margin-bottom:26px}
+.modes {display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode {text-align:left;display:grid;gap:5px;position:relative;background:#0c2530;min-width:0}
+.mode::after {content:'';width:9px;height:9px;border:1px solid #7d9795;border-radius:100%;position:absolute;top:16px;right:13px}
+.mode[aria-pressed=true] {border-color:var(--light);background:#213831}
+.mode[aria-pressed=true]::after {background:var(--light);border-color:var(--light)}
+.mode b {font-size:16px}.mode small {color:var(--muted);font-size:12px}
+.mode .symbol {font-size:28px;color:var(--light);line-height:1.3}
+.wide {width:100%;margin-top:14px}
+.scene {position:relative;isolation:isolate;overflow:hidden;min-height:520px;border:1px solid #477077;border-radius:160px 160px 20px 20px;--water:#2a6971;background:linear-gradient(165deg,var(--water),#0b3040 50%,#051726 90%);text-align:center;transition:filter 1s}
+.scene::before {content:'';position:absolute;inset:0;z-index:-1;background:repeating-conic-gradient(from 163deg at 55% -40%,transparent 0 5deg,#e0fdd708 6deg 8deg,transparent 10deg 20deg)}
+.depth-label {margin-top:48px;color:#c7e2dc}
+.depth {font-size:48px;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+.depth small {font-size:15px;letter-spacing:0}
+.zone-name {color:var(--light)}
+.scale {position:absolute;top:33%;bottom:12%;left:5%;display:flex;flex-direction:column;justify-content:space-between;align-items:start;font:10px monospace;color:#a7c7c9}
+.scale span::before {content:'─ ';opacity:.65}
+.vehicle {position:absolute;left:56%;top:var(--sub-y,42%);width:min(55%,240px);transform:translate(-50%,-15%);transition:top 1.1s ease}
+.vehicle svg {width:100%;overflow:visible;animation:bob 5s ease-in-out infinite}
+.floor {position:absolute;bottom:-1px;left:0;width:100%;height:22%;z-index:-1}
+.bubble {position:absolute;left:var(--x);bottom:-10px;width:var(--s);height:var(--s);border:1px solid #b2f3e650;border-radius:50%;animation:rise var(--t) linear infinite;animation-delay:var(--d);pointer-events:none}
+@keyframes rise {to{transform:translate(14px,-570px)}} @keyframes bob {50%{transform:translateY(-5px) rotate(-1deg)}}
+.screen {min-width:0}
+h2 {font-weight:650;letter-spacing:-.045em;font-size:clamp(28px,4vw,45px);line-height:1.12;margin:18px 0 12px}
+.hint,.status {font-size:13px}.status {min-height:24px;margin:8px 0;color:#ffd9b0}
+input,textarea {background:#102e39;border:1px solid #66878b;color:var(--ink);padding:14px;border-radius:10px;width:100%}
+label {display:block;margin:18px 0 7px}
+.clock {height:5px;background:#25424b;margin:8px 0 22px;overflow:hidden;border-radius:9px}
+.clock i {display:block;background:#91e2d1;height:100%;transform-origin:left}
+.timer {font:700 20px ui-monospace,monospace}
+.tier {display:inline-block;padding:6px 12px;border:1px solid currentColor;border-radius:24px}
+.big {font-size:41px;font-weight:680;letter-spacing:-2px;margin:6px 0}
+#result p {margin:10px 0}
+#oxygen {font-size:13px;color:var(--light);margin:10px 0}
+.shake {animation:shake .25s} @keyframes shake {25%,75%{transform:translateX(-4px)}50%{transform:translateX(5px)}}
+footer {border-top:1px solid var(--edge);padding:18px 0 28px;color:var(--muted);font-size:12px}
+dialog {width:min(470px,90vw);max-height:80vh;border:1px solid var(--edge);border-radius:16px;background:#0e2c38;color:var(--ink);padding:25px}
+dialog::backdrop {background:#02131bd9}
+dialog p,dialog ul {font-size:14px;margin:12px 0}
+#summary {padding:35px 0;max-width:850px;margin:auto}
+#summary .row {justify-content:start;flex-wrap:wrap;margin:16px 0}
+table {border-collapse:collapse;width:100%;font-size:14px}
+th,td {text-align:left;border-bottom:1px solid var(--edge);padding:12px 7px}
+th {color:var(--muted)}td:last-child {text-align:right}
+[hidden] {display:none!important}
+@media(max-width:680px) {
+ header {height:64px}.layout {grid-template-columns:1fr;gap:24px;padding:22px 0}
+ .scene {min-height:245px;border-radius:28px}.depth-label{margin-top:19px}.depth{font-size:32px}
+ .scale{top:21%;bottom:13%;font-size:9px}.vehicle{width:32%;left:62%}
+ .layout.play .scene{grid-row:1;min-height:175px}.layout.play .depth-label{margin-top:10px}
+ .layout.play .vehicle{width:25%;left:72%}.modes button{padding:12px}
+ th,td{font-size:12px;padding:8px 4px}footer{align-items:start}.lead{margin-bottom:18px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="brand">krillion<i>.</i></div><div><span>Personal best</span> <strong id="best">0 m</strong></div></header>
+<main>
+<div class="layout" id="layout">
+<section id="menu" class="screen"><div class="tag">Deep-sea trivia</div><h1>Think rare.<br>Dive <em>deeper.</em></h1>
+<p class="lead">You have 25 seconds to name something in a category. Each point takes your submarine 10 meters deeper. How far can one unusual answer take you?</p>
+<div class="modes" aria-label="Choose a dive mode"><button class="mode" id="five" aria-pressed="true"><span class="symbol">↓</span><b>5-Round Dive</b><small>Five prompts · 5,000 m max</small></button><button class="mode" id="infinity" aria-pressed="false"><span class="symbol">∞</span><b>Infinity Mode</b><small>Endless prompts · 3 tanks</small></button></div><button class="primary wide" id="start">Start your dive ↘</button></section>
+<section id="game" class="screen" hidden><div class="row"><span id="round" class="tag"></span><button id="end">End dive</button></div><p id="oxygen" hidden></p>
+<div id="question"><div class="row"><span class="micro">Time remaining</span><span id="time" class="timer" role="timer">25s</span></div><div class="clock"><i id="bar"></i></div><div id="category" class="tag"></div><h2 id="prompt"></h2><p id="hint" class="hint"></p><form id="form"><label class="micro" for="guess">Your answer</label><input id="guess" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="100" required><button class="primary wide">Lock it in ↘</button></form><div class="status" id="error" role="status"></div></div>
+<div id="result" hidden aria-live="polite"><div class="tier" id="tier"></div><h2 id="answer"></h2><div class="big" id="earned"></div><p id="fact"></p><button id="next" class="primary wide">Next round ↓</button></div></section>
+<aside class="scene" id="scene" aria-label="Submarine depth meter"><div class="depth-label">Dive depth</div><div class="depth"><strong id="depth">0</strong> <small>m</small></div><div id="zone" class="zone-name">Sunlight Zone</div>
+<div class="scale" aria-hidden="true"><span>0 m</span><span>200 m</span><span>1,000 m</span><span>4,000 m</span><span>6,000 m</span></div>
+<div class="vehicle"><svg viewBox="0 0 240 110" aria-hidden="true"><defs><linearGradient id="hull" x2=".35" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#f7eab4"/><stop offset=".5" stop-color="#d4cd83"/><stop offset="1" stop-color="#79966f"/></linearGradient><linearGradient id="beam"><stop stop-color="#edffd050"/><stop offset="1" stop-color="#edffd000"/></linearGradient></defs><path d="m178 54 100-43v103l-100-48" fill="url(#beam)"/><g stroke-linejoin="round"><path d="M81 38V16h24" fill="none" stroke="#b6cba0" stroke-width="7"/><rect x="69" y="29" width="51" height="17" rx="6" fill="#b6bb80"/><path d="M47 53 20 37v42l27-9" fill="#7fa185"/><path d="M56 43h82c56 0 58 42 0 42H56c-32 0-32-42 0-42" fill="url(#hull)"/><path d="M60 48h57" stroke="#fff3c5" stroke-width="3" stroke-linecap="round"/><circle cx="140" cy="63" r="16" fill="#244857" stroke="#9b9d70" stroke-width="5"/><path d="M131 61q3-8 10-8" fill="none" stroke="#9de1dc" stroke-width="3" stroke-linecap="round"/><circle cx="79" cy="63" r="8" fill="#376978" stroke="#9aab81" stroke-width="4"/><circle cx="56" cy="63" r="5" fill="#376978"/><path d="M75 85v9h60v-9" fill="none" stroke="#83a294" stroke-width="4"/><rect x="176" y="54" width="6" height="14" rx="2" fill="#eeffc4"/></g></svg></div>
+<svg class="floor" viewBox="0 0 500 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 80 30 135 24 202 66 280 42 348 14 405 34 500 8v92H0" fill="#0e303b"/><path d="m0 25 74 17 88-3 78 45 64-19 61 9 66-35 69-4v65H0" fill="#051824"/></svg></aside></div>
+<section id="summary" hidden><span class="tag">Dive log</span><h2 id="summaryTitle"></h2><p id="total"></p><table><thead><tr><th>Prompt</th><th>Answer</th><th>Rarity</th><th>Points</th></tr></thead><tbody id="rows"></tbody></table><div class="row"><button class="primary" id="again">Dive again</button><button id="share">Share Results</button><button id="home">Main menu</button></div><div id="copyStatus" role="status"></div><textarea id="copyText" aria-label="Copy your results" readonly hidden></textarea></section></main>
+<footer><span>Independent Krillion clone · Offline trivia</span><button id="help">How to play</button></footer>
+<dialog id="rules"><h2>How to play</h2><p>Give one answer before the clock runs out. The first recognized answer locks in. You can retry an unrecognized guess while time remains.</p><ul><li>Common · 1–30</li><li>Uncommon · 31–60</li><li>Rare · 61–89</li><li>Deep Cut · 90–99</li><li>One in a Krillion · 100, plus a fact</li></ul><p>Each answer has a fixed rarity score. In Infinity Mode, score at least 40 points to keep your oxygen. The target rises by 5 every five rounds, up to 80. A timeout scores zero.</p><p id="inventory"></p><button id="closeRules">Got it</button></dialog>
+<dialog id="quit"><h2>End this dive?</h2><p>Your completed rounds will appear in the dive log. The current timer keeps running.</p><button id="cancel">Keep playing</button> <button id="confirm">Finish dive</button></dialog>
+<script>
+'use strict';
+const bank = [
+{"category": "Orchard", "prompt": "Name a fruit.", "hint": "Everyday fruit names and regional names count.", "fact": "Buddha’s hand is a citron whose sections grow into long, finger-like shapes.", "answers": [["Apple", 5], ["Banana", 7], ["Orange", 9], ["Grape", 10], ["Strawberry", 12], ["Watermelon", 14], ["Mango", 16], ["Pineapple", 17], ["Pear", 19], ["Peach", 21], ["Cherry", 23], ["Lemon", 25], ["Lime", 26], ["Blueberry", 28], ["Raspberry", 30], ["Plum", 32], ["Coconut", 33], ["Kiwi", 35, "Kiwifruit"], ["Apricot", 37], ["Grapefruit", 39], ["Papaya", 40], ["Pomegranate", 42], ["Guava", 44], ["Fig", 46], ["Date", 48], ["Cantaloupe", 49], ["Honeydew", 51], ["Blackberry", 53], ["Cranberry", 55], ["Nectarine", 56], ["Tangerine", 58], ["Clementine", 60], ["Passionfruit", 62], ["Lychee", 64, "Litchi"], ["Dragonfruit", 65, "Pitaya"], ["Persimmon", 67], ["Jackfruit", 69], ["Durian", 71], ["Starfruit", 72, "Carambola"], ["Kumquat", 74], ["Pomelo", 76], ["Tamarind", 78], ["Quince", 79], ["Rambutan", 81], ["Mangosteen", 83], ["Longan", 85], ["Soursop", 87, "Guanabana"], ["Salak", 88, "Snake fruit"], ["Cherimoya", 90], ["Feijoa", 92], ["Medlar", 94], ["Loquat", 95], ["Atemoya", 97], ["Jabuticaba", 98, "Jaboticaba"], ["Buddha’s hand", 100]]},
+{"category": "Atlas", "prompt": "Name a country in Europe.", "hint": "Includes transcontinental countries and Kosovo.", "fact": "San Marino shares its entire land border with Italy.", "answers": [["France", 5], ["Germany", 7], ["Italy", 9], ["Spain", 11], ["United Kingdom", 13, "UK", "Britain", "Great Britain"], ["Greece", 15], ["Portugal", 17], ["Ireland", 18], ["Netherlands", 20, "Holland"], ["Switzerland", 22], ["Sweden", 24], ["Norway", 26], ["Denmark", 28], ["Finland", 30], ["Poland", 32], ["Austria", 34], ["Belgium", 36], ["Russia", 38], ["Ukraine", 40], ["Iceland", 41], ["Czechia", 43, "Czech Republic"], ["Hungary", 45], ["Romania", 47], ["Croatia", 49], ["Serbia", 51], ["Bulgaria", 53], ["Slovakia", 55], ["Slovenia", 57], ["Estonia", 59], ["Latvia", 61], ["Lithuania", 63], ["Luxembourg", 64], ["Malta", 66], ["Cyprus", 68], ["Albania", 70], ["Bosnia and Herzegovina", 72, "Bosnia"], ["Montenegro", 74], ["North Macedonia", 76, "Macedonia"], ["Belarus", 78], ["Moldova", 80], ["Turkey", 82, "Türkiye"], ["Georgia", 84], ["Armenia", 86], ["Azerbaijan", 87], ["Kazakhstan", 89], ["Kosovo", 91], ["Andorra", 93], ["Monaco", 95], ["Liechtenstein", 97], ["Vatican City", 99, "Vatican", "Holy See"], ["San Marino", 100]]},
+{"category": "Chemistry", "prompt": "Name a chemical element.", "hint": "Element names and symbols both count.", "fact": "Oganesson has 118 protons in its nucleus.", "answers": [["Oxygen", 5, "O"], ["Hydrogen", 6, "H"], ["Gold", 7, "Au"], ["Carbon", 7, "C"], ["Iron", 8, "Fe"], ["Helium", 9, "He"], ["Silver", 10, "Ag"], ["Nitrogen", 11, "N"], ["Copper", 11, "Cu"], ["Calcium", 12, "Ca"], ["Sodium", 13, "Na"], ["Potassium", 14, "K"], ["Aluminium", 15, "Aluminum", "Al"], ["Magnesium", 16, "Mg"], ["Chlorine", 16, "Cl"], ["Silicon", 17, "Si"], ["Mercury", 18, "Hg"], ["Lead", 19, "Pb"], ["Lithium", 20, "Li"], ["Uranium", 20, "U"], ["Neon", 21, "Ne"], ["Zinc", 22, "Zn"], ["Tin", 23, "Sn"], ["Nickel", 24, "Ni"], ["Sulfur", 24, "Sulphur", "S"], ["Titanium", 25, "Ti"], ["Platinum", 26, "Pt"], ["Fluorine", 27, "F"], ["Phosphorus", 28, "P"], ["Boron", 28, "B"], ["Cobalt", 29, "Co"], ["Chromium", 30, "Cr"], ["Iodine", 31, "I"], ["Tungsten", 32, "W"], ["Argon", 33, "Ar"], ["Manganese", 33, "Mn"], ["Arsenic", 34, "As"], ["Bromine", 35, "Br"], ["Krypton", 36, "Kr"], ["Radon", 37, "Rn"], ["Xenon", 37, "Xe"], ["Barium", 38, "Ba"], ["Thorium", 39, "Th"], ["Radium", 40, "Ra"], ["Plutonium", 41, "Pu"], ["Selenium", 41, "Se"], ["Gallium", 42, "Ga"], ["Beryllium", 43, "Be"], ["Bismuth", 44, "Bi"], ["Germanium", 45, "Ge"], ["Cadmium", 46, "Cd"], ["Zirconium", 46, "Zr"], ["Vanadium", 47, "V"], ["Caesium", 48, "Cesium", "Cs"], ["Strontium", 49, "Sr"], ["Rhodium", 50, "Rh"], ["Neodymium", 50, "Nd"], ["Scandium", 51, "Sc"], ["Rubidium", 52, "Rb"], ["Antimony", 53, "Sb"], ["Indium", 54, "In"], ["Molybdenum", 54, "Mo"], ["Tellurium", 55, "Te"], ["Ruthenium", 56, "Ru"], ["Palladium", 57, "Pd"], ["Yttrium", 58, "Y"], ["Niobium", 58, "Nb"], ["Lanthanum", 59, "La"], ["Cerium", 60, "Ce"], ["Samarium", 61, "Sm"], ["Erbium", 62, "Er"], ["Europium", 63, "Eu"], ["Gadolinium", 63, "Gd"], ["Promethium", 64, "Pm"], ["Praseodymium", 65, "Pr"], ["Terbium", 66, "Tb"], ["Dysprosium", 67, "Dy"], ["Holmium", 67, "Ho"], ["Thulium", 68, "Tm"], ["Ytterbium", 69, "Yb"], ["Lutetium", 70, "Lu"], ["Hafnium", 71, "Hf"], ["Tantalum", 71, "Ta"], ["Rhenium", 72, "Re"], ["Osmium", 73, "Os"], ["Iridium", 74, "Ir"], ["Thallium", 75, "Tl"], ["Polonium", 76, "Po"], ["Astatine", 76, "At"], ["Francium", 77, "Fr"], ["Actinium", 78, "Ac"], ["Protactinium", 79, "Pa"], ["Neptunium", 80, "Np"], ["Americium", 80, "Am"], ["Curium", 81, "Cm"], ["Berkelium", 82, "Bk"], ["Californium", 83, "Cf"], ["Einsteinium", 84, "Es"], ["Fermium", 84, "Fm"], ["Mendelevium", 85, "Md"], ["Nobelium", 86, "No"], ["Lawrencium", 87, "Lr"], ["Rutherfordium", 88, "Rf"], ["Dubnium", 88, "Db"], ["Seaborgium", 89, "Sg"], ["Bohrium", 90, "Bh"], ["Hassium", 91, "Hs"], ["Meitnerium", 92, "Mt"], ["Darmstadtium", 93, "Ds"], ["Roentgenium", 93, "Rg"], ["Copernicium", 94, "Cn"], ["Nihonium", 95, "Nh"], ["Flerovium", 96, "Fl"], ["Moscovium", 97, "Mc"], ["Livermorium", 97, "Lv"], ["Tennessine", 98, "Ts"], ["Technetium", 99, "Tc"], ["Oganesson", 100, "Og"]]},
+{"category": "Gridiron", "prompt": "Name an NFL team.", "hint": "Give the full team name or nickname.", "fact": "The Jaguars played their first NFL season in 1995.", "answers": [["Kansas City Chiefs", 5, "Chiefs"], ["Dallas Cowboys", 8, "Cowboys"], ["New England Patriots", 11, "Patriots", "Pats"], ["Philadelphia Eagles", 14, "Eagles"], ["San Francisco 49ers", 18, "49ers", "Niners"], ["Green Bay Packers", 21, "Packers"], ["Pittsburgh Steelers", 24, "Steelers"], ["New York Giants", 27, "Giants"], ["New York Jets", 30, "Jets"], ["Chicago Bears", 33, "Bears"], ["Miami Dolphins", 36, "Dolphins"], ["Buffalo Bills", 39, "Bills"], ["Baltimore Ravens", 43, "Ravens"], ["Detroit Lions", 46, "Lions"], ["Las Vegas Raiders", 49, "Raiders", "Oakland Raiders"], ["Denver Broncos", 52, "Broncos"], ["Seattle Seahawks", 55, "Seahawks"], ["Los Angeles Rams", 58, "Rams", "St Louis Rams"], ["Minnesota Vikings", 61, "Vikings"], ["New Orleans Saints", 65, "Saints"], ["Tampa Bay Buccaneers", 68, "Buccaneers", "Bucs"], ["Cincinnati Bengals", 71, "Bengals"], ["Cleveland Browns", 74, "Browns"], ["Indianapolis Colts", 77, "Colts"], ["Los Angeles Chargers", 80, "Chargers", "San Diego Chargers"], ["Atlanta Falcons", 83, "Falcons"], ["Tennessee Titans", 86, "Titans", "Houston Oilers"], ["Carolina Panthers", 90, "Panthers"], ["Washington Commanders", 93, "Commanders", "Washington Football Team"], ["Arizona Cardinals", 96, "Cardinals"], ["Houston Texans", 99, "Texans"], ["Jacksonville Jaguars", 100, "Jaguars", "Jags"]]},
+{"category": "White House", "prompt": "Name a U.S. president.", "hint": "Use a full name when two presidents share a surname.", "fact": "Chester A. Arthur took office in 1881 after James Garfield died.", "answers": [["George Washington", 5, "Washington"], ["Abraham Lincoln", 7, "Lincoln", "Abe Lincoln"], ["Barack Obama", 9, "Obama"], ["Donald Trump", 12, "Trump"], ["Joe Biden", 14, "Biden", "Joseph Biden"], ["John F Kennedy", 16, "JFK", "Kennedy", "John Kennedy"], ["Thomas Jefferson", 18, "Jefferson"], ["Ronald Reagan", 20, "Reagan"], ["Franklin D Roosevelt", 22, "FDR", "Franklin Roosevelt"], ["Theodore Roosevelt", 25, "Teddy Roosevelt", "TR"], ["Bill Clinton", 27, "Clinton", "William Clinton"], ["George W Bush", 29, "George Bush Jr"], ["Richard Nixon", 31, "Nixon"], ["Jimmy Carter", 33, "Carter", "James Carter"], ["Andrew Jackson", 36, "Jackson"], ["John Adams", 38], ["Ulysses S Grant", 40, "Grant", "Ulysses Grant"], ["Dwight D Eisenhower", 42, "Eisenhower", "Dwight Eisenhower"], ["James Madison", 44, "Madison"], ["Harry S Truman", 47, "Truman", "Harry Truman"], ["Woodrow Wilson", 49, "Wilson"], ["George HW Bush", 51, "George Bush Sr"], ["James Monroe", 53, "Monroe"], ["Lyndon B Johnson", 55, "LBJ", "Lyndon Johnson"], ["Gerald Ford", 57, "Ford"], ["William Howard Taft", 60, "William Taft", "Taft"], ["Grover Cleveland", 62, "Cleveland"], ["Herbert Hoover", 64, "Hoover"], ["John Quincy Adams", 66], ["Andrew Johnson", 68], ["James A Garfield", 71, "Garfield", "James Garfield"], ["William McKinley", 73, "McKinley"], ["Zachary Taylor", 75, "Taylor"], ["Martin Van Buren", 77, "Van Buren"], ["Calvin Coolidge", 79, "Coolidge"], ["Warren G Harding", 82, "Harding", "Warren Harding"], ["James K Polk", 84, "Polk", "James Polk"], ["William Henry Harrison", 86], ["John Tyler", 88, "Tyler"], ["James Buchanan", 90, "Buchanan"], ["Benjamin Harrison", 92], ["Rutherford B Hayes", 95, "Hayes", "Rutherford Hayes"], ["Franklin Pierce", 97, "Pierce"], ["Millard Fillmore", 99, "Fillmore"], ["Chester A Arthur", 100, "Arthur", "Chester Arthur"]]},
+{"category": "Solar system", "prompt": "Name a planet or moon in our solar system.", "hint": "Dwarf planets and named natural moons also count.", "fact": "Daphnis orbits in the Keeler Gap in Saturn’s rings.", "answers": [["Earth", 5], ["Mars", 7], ["Jupiter", 9], ["Saturn", 11], ["Moon", 13, "The Moon", "Luna"], ["Venus", 15], ["Mercury", 17], ["Pluto", 18], ["Neptune", 20], ["Uranus", 22], ["Titan", 24], ["Europa", 26], ["Io", 28], ["Ganymede", 30], ["Callisto", 32], ["Triton", 34], ["Enceladus", 36], ["Phobos", 38], ["Deimos", 40], ["Charon", 41], ["Ceres", 43], ["Eris", 45], ["Haumea", 47], ["Makemake", 49], ["Titania", 51], ["Oberon", 53], ["Miranda", 55], ["Ariel", 57], ["Umbriel", 59], ["Rhea", 61], ["Iapetus", 63], ["Dione", 64], ["Tethys", 66], ["Mimas", 68], ["Hyperion", 70], ["Phoebe", 72], ["Nereid", 74], ["Proteus", 76], ["Amalthea", 78], ["Himalia", 80], ["Janus", 82], ["Epimetheus", 84], ["Pandora", 86], ["Prometheus", 87], ["Pan", 89], ["Atlas", 91], ["Nix", 93], ["Hydra", 95], ["Kerberos", 97], ["Styx", 99], ["Daphnis", 100]]},
+{"category": "Atlas", "prompt": "Name a U.S. state.", "hint": "Full state names and postal abbreviations count.", "fact": "Delaware was the first state to ratify the U.S. Constitution.", "answers": [["California", 5, "CA"], ["New York", 7, "NY"], ["Texas", 9, "TX"], ["Florida", 11, "FL"], ["Hawaii", 13, "HI"], ["Alaska", 15, "AK"], ["New Jersey", 17, "NJ"], ["Pennsylvania", 19, "PA"], ["Ohio", 21, "OH"], ["Illinois", 23, "IL"], ["Michigan", 25, "MI"], ["Georgia", 27, "GA"], ["Nevada", 28, "NV"], ["Arizona", 30, "AZ"], ["Colorado", 32, "CO"], ["Washington", 34, "WA"], ["Massachusetts", 36, "MA"], ["Virginia", 38, "VA"], ["North Carolina", 40, "NC"], ["South Carolina", 42, "SC"], ["Tennessee", 44, "TN"], ["Louisiana", 46, "LA"], ["Alabama", 48, "AL"], ["Oregon", 50, "OR"], ["Wisconsin", 52, "WI"], ["Minnesota", 54, "MN"], ["Indiana", 56, "IN"], ["Missouri", 58, "MO"], ["Kentucky", 60, "KY"], ["Utah", 62, "UT"], ["Oklahoma", 64, "OK"], ["Kansas", 66, "KS"], ["Iowa", 68, "IA"], ["Mississippi", 70, "MS"], ["Arkansas", 72, "AR"], ["New Mexico", 74, "NM"], ["Maryland", 76, "MD"], ["Connecticut", 77, "CT"], ["Maine", 79, "ME"], ["Montana", 81, "MT"], ["Nebraska", 83, "NE"], ["Idaho", 85, "ID"], ["New Hampshire", 87, "NH"], ["Rhode Island", 89, "RI"], ["West Virginia", 91, "WV"], ["North Dakota", 93, "ND"], ["South Dakota", 95, "SD"], ["Wyoming", 97, "WY"], ["Vermont", 99, "VT"], ["Delaware", 100, "DE"]]},
+{"category": "Atlas", "prompt": "Name a South American country.", "hint": "The twelve sovereign countries on the continent count.", "fact": "Dutch is the official language of Suriname.", "answers": [["Brazil", 5], ["Argentina", 14], ["Chile", 24], ["Peru", 33], ["Colombia", 43], ["Venezuela", 52], ["Ecuador", 61], ["Uruguay", 71], ["Bolivia", 80], ["Paraguay", 90], ["Guyana", 99], ["Suriname", 100]]},
+{"category": "Atlas", "prompt": "Name a Canadian province or territory.", "hint": "All ten provinces and three territories count.", "fact": "Nunavut became a Canadian territory in 1999.", "answers": [["Ontario", 5, "Ont"], ["Quebec", 14, "Québec"], ["Alberta", 22], ["British Columbia", 31, "BC"], ["Manitoba", 39], ["Saskatchewan", 48], ["Nova Scotia", 56], ["New Brunswick", 65], ["Newfoundland and Labrador", 73, "Newfoundland"], ["Prince Edward Island", 82, "PEI"], ["Yukon", 90, "Yukon Territory"], ["Northwest Territories", 99, "NWT"], ["Nunavut", 100]]},
+{"category": "Atlas", "prompt": "Name an Australian state or mainland internal territory.", "hint": "Include all six states or one of the three mainland territories.", "fact": "Jervis Bay Territory lies on Australia’s southeast coast.", "answers": [["New South Wales", 5, "NSW"], ["Queensland", 18, "QLD"], ["Victoria", 32, "VIC"], ["Western Australia", 45, "WA"], ["South Australia", 59, "SA"], ["Tasmania", 72, "TAS"], ["Northern Territory", 86, "NT"], ["Australian Capital Territory", 99, "ACT"], ["Jervis Bay Territory", 100, "JBT"]]},
+{"category": "Atlas", "prompt": "Name a country in Central America.", "hint": "Use the seven-country definition from Guatemala to Panama.", "fact": "Belize borders the Caribbean Sea and has English as its official language.", "answers": [["Costa Rica", 5], ["Panama", 24], ["Guatemala", 43], ["Honduras", 61], ["El Salvador", 80], ["Nicaragua", 99], ["Belize", 100]]},
+{"category": "Atlas", "prompt": "Name a country in Africa.", "hint": "Name one of the 54 UN member states in Africa.", "fact": "The two main islands of São Tomé and Príncipe lie in the Gulf of Guinea.", "answers": [["Egypt", 5], ["South Africa", 7], ["Nigeria", 9], ["Kenya", 10], ["Morocco", 12], ["Ghana", 14], ["Ethiopia", 16], ["Tanzania", 18], ["Algeria", 19], ["Tunisia", 21], ["Uganda", 23], ["Sudan", 25], ["Libya", 27], ["Somalia", 28], ["Madagascar", 30], ["Cameroon", 32], ["Senegal", 34], ["Zimbabwe", 36], ["Zambia", 38], ["Rwanda", 39], ["Botswana", 41], ["Namibia", 43], ["Mozambique", 45], ["Angola", 47], ["Mali", 48], ["Niger", 50], ["Chad", 52], ["Malawi", 54], ["Gabon", 56], ["Guinea", 57], ["Liberia", 59], ["Sierra Leone", 61], ["Benin", 63], ["Togo", 65], ["Burkina Faso", 66], ["Mauritania", 68], ["Eritrea", 70], ["Djibouti", 72], ["South Sudan", 74], ["Democratic Republic of the Congo", 76, "DR Congo", "DRC"], ["Republic of the Congo", 77, "Congo Brazzaville"], ["Ivory Coast", 79, "Côte d’Ivoire"], ["Central African Republic", 81, "CAR"], ["Equatorial Guinea", 83], ["Guinea-Bissau", 85], ["Burundi", 86], ["Lesotho", 88], ["Eswatini", 90, "Swaziland"], ["Gambia", 92, "The Gambia"], ["Mauritius", 94], ["Seychelles", 95], ["Cabo Verde", 97, "Cape Verde"], ["Comoros", 99], ["São Tomé and Príncipe", 100, "Sao Tome"]]},
+{"category": "Oceanography", "prompt": "Name one of the five oceans.", "hint": "The word “Ocean” is optional.", "fact": "The Southern Ocean encircles Antarctica.", "answers": [["Pacific Ocean", 5, "Pacific"], ["Atlantic Ocean", 36, "Atlantic"], ["Indian Ocean", 68, "Indian"], ["Arctic Ocean", 99, "Arctic"], ["Southern Ocean", 100, "Southern", "Antarctic Ocean"]]},
+{"category": "Fresh water", "prompt": "Name one of North America’s Great Lakes.", "hint": "The word “Lake” is optional.", "fact": "Manitoulin Island is in Lake Huron.", "answers": [["Lake Michigan", 5, "Michigan"], ["Lake Superior", 36, "Superior"], ["Lake Erie", 68, "Erie"], ["Lake Ontario", 99, "Ontario"], ["Lake Huron", 100, "Huron"]]},
+{"category": "Alphabet", "prompt": "Name a letter of the modern Greek alphabet.", "hint": "Use the English spelling.", "fact": "Upsilon is the twentieth letter of the Greek alphabet.", "answers": [["Alpha", 5], ["Beta", 9], ["Pi", 14], ["Delta", 18], ["Gamma", 22], ["Sigma", 26], ["Omega", 31], ["Theta", 35], ["Lambda", 39], ["Phi", 43], ["Kappa", 48], ["Epsilon", 52], ["Zeta", 56], ["Omicron", 61], ["Iota", 65], ["Mu", 69], ["Rho", 73], ["Tau", 78], ["Eta", 82], ["Chi", 86], ["Nu", 90], ["Xi", 95], ["Psi", 99], ["Upsilon", 100]]},
+{"category": "Measurement", "prompt": "Name an SI prefix.", "hint": "Spell out the prefix used with a metric unit.", "fact": "Quecto means a factor of ten to the power of minus thirty.", "answers": [["Kilo", 5], ["Mega", 9], ["Giga", 14], ["Milli", 18], ["Centi", 22], ["Micro", 26], ["Nano", 31], ["Tera", 35], ["Deci", 39], ["Hecto", 43], ["Deca", 48, "Deka"], ["Pico", 52], ["Peta", 56], ["Femto", 61], ["Exa", 65], ["Atto", 69], ["Zetta", 73], ["Zepto", 78], ["Yotta", 82], ["Yocto", 86], ["Ronna", 90], ["Ronto", 95], ["Quetta", 99], ["Quecto", 100]]},
+{"category": "Measurement", "prompt": "Name an SI base unit.", "hint": "Names or unit symbols count.", "fact": "The candela measures luminous intensity in a given direction.", "answers": [["Metre", 5, "Meter", "m"], ["Second", 24, "s"], ["Kilogram", 43, "kg"], ["Kelvin", 61, "K"], ["Ampere", 80, "Amp", "A"], ["Mole", 99, "mol"], ["Candela", 100, "cd"]]},
+{"category": "Chemistry", "prompt": "Name a noble gas element.", "hint": "Names and symbols from group 18 count.", "fact": "Oganesson sits beneath radon in group 18.", "answers": [["Helium", 5, "He"], ["Neon", 24, "Ne"], ["Argon", 43, "Ar"], ["Krypton", 61, "Kr"], ["Xenon", 80, "Xe"], ["Radon", 99, "Rn"], ["Oganesson", 100, "Og"]]},
+{"category": "Chemistry", "prompt": "Name a metal from the first transition series.", "hint": "Elements 21 through 30, inclusive. Names or symbols count.", "fact": "Scandium is named after Scandinavia.", "answers": [["Iron", 5, "Fe"], ["Copper", 17, "Cu"], ["Zinc", 28, "Zn"], ["Nickel", 40, "Ni"], ["Titanium", 52, "Ti"], ["Cobalt", 64, "Co"], ["Chromium", 76, "Cr"], ["Manganese", 87, "Mn"], ["Vanadium", 99, "V"], ["Scandium", 100, "Sc"]]},
+{"category": "Astronomy", "prompt": "Name a zodiac constellation.", "hint": "Use one of the twelve traditional zodiac signs.", "fact": "Capricornus is traditionally depicted as a sea-goat.", "answers": [["Leo", 5], ["Aries", 14], ["Gemini", 24], ["Taurus", 33], ["Cancer", 43], ["Libra", 52], ["Virgo", 61], ["Scorpius", 71, "Scorpio"], ["Sagittarius", 80], ["Pisces", 90], ["Aquarius", 99], ["Capricornus", 100, "Capricorn"]]},
+{"category": "Calendar", "prompt": "Name a Chinese zodiac animal.", "hint": "English animal names and common translations count.", "fact": "The rooster is the only bird among the twelve Chinese zodiac animals.", "answers": [["Dragon", 5], ["Tiger", 14], ["Rabbit", 24], ["Snake", 33], ["Horse", 43], ["Monkey", 52], ["Dog", 61], ["Pig", 71, "Boar"], ["Rat", 80, "Mouse"], ["Ox", 90, "Cow", "Bull"], ["Goat", 99, "Sheep", "Ram"], ["Rooster", 100, "Chicken", "Cock"]]},
+{"category": "Board games", "prompt": "Name a chess piece.", "hint": "Use a piece from standard chess.", "fact": "A bishop always stays on squares of its starting color.", "answers": [["King", 5], ["Queen", 28], ["Pawn", 52], ["Knight", 76, "Horse"], ["Rook", 99, "Castle"], ["Bishop", 100]]},
+{"category": "Board games", "prompt": "Name a standard Monopoly color group.", "hint": "Use a modern classic U.S. board. Railroads and utilities are outside these groups.", "fact": "Mediterranean Avenue and Baltic Avenue form the brown group.", "answers": [["Red", 5], ["Blue", 21, "Dark Blue"], ["Green", 36], ["Yellow", 52], ["Orange", 68], ["Pink", 83, "Magenta"], ["Light Blue", 99, "Sky Blue"], ["Brown", 100]]},
+{"category": "Geology", "prompt": "Name a mineral on the Mohs hardness scale.", "hint": "One of the ten original reference minerals.", "fact": "Apatite marks hardness five on the Mohs scale.", "answers": [["Diamond", 5], ["Quartz", 17], ["Talc", 28], ["Gypsum", 40], ["Calcite", 52], ["Topaz", 64], ["Corundum", 76], ["Fluorite", 87], ["Orthoclase", 99, "Orthoclase feldspar"], ["Apatite", 100]]},
+{"category": "Geology", "prompt": "Name a geologic period of the Phanerozoic.", "hint": "Use one of the standard international periods.", "fact": "The Neogene includes the Miocene and Pliocene epochs.", "answers": [["Jurassic", 5], ["Cretaceous", 14], ["Triassic", 24], ["Cambrian", 33], ["Permian", 43], ["Devonian", 52], ["Carboniferous", 61], ["Ordovician", 71], ["Silurian", 80], ["Quaternary", 90], ["Paleogene", 99, "Palaeogene"], ["Neogene", 100]]},
+{"category": "Human body", "prompt": "Name a carpal bone.", "hint": "One of the eight small bones in the wrist.", "fact": "The pisiform sits on the palm-facing surface of the triquetrum.", "answers": [["Scaphoid", 5], ["Lunate", 21], ["Trapezium", 36], ["Trapezoid", 52], ["Capitate", 68], ["Hamate", 83], ["Pisiform", 99], ["Triquetrum", 100, "Triquetral"]]},
+{"category": "Literature", "prompt": "Name a novel written by Jane Austen.", "hint": "Use one of her six completed novels.", "fact": "Northanger Abbey sends Catherine Morland into a world shaped by her love of Gothic novels.", "answers": [["Pride and Prejudice", 5], ["Sense and Sensibility", 28], ["Emma", 52], ["Persuasion", 76], ["Mansfield Park", 99], ["Northanger Abbey", 100]]},
+{"category": "Literature", "prompt": "Name a Shakespeare tragedy.", "hint": "Use a play listed under tragedies in the First Folio.", "fact": "Cymbeline was printed among the tragedies in the First Folio, though it is often called a romance today.", "answers": [["Hamlet", 5], ["Macbeth", 14], ["Romeo and Juliet", 24], ["Othello", 33], ["King Lear", 43], ["Julius Caesar", 52], ["Antony and Cleopatra", 61], ["Coriolanus", 71], ["Titus Andronicus", 80], ["Troilus and Cressida", 90], ["Timon of Athens", 99], ["Cymbeline", 100]]},
+{"category": "Mythology", "prompt": "Name a child of Cronus and Rhea.", "hint": "Use the Greek names of their six Olympian children.", "fact": "Hestia is associated with the hearth.", "answers": [["Zeus", 5], ["Poseidon", 28], ["Hades", 52], ["Hera", 76], ["Demeter", 99], ["Hestia", 100]]},
+{"category": "Music", "prompt": "Name a standard orchestral woodwind.", "hint": "Include common modern relatives of the four main woodwind families.", "fact": "The contrabassoon sounds an octave below the bassoon.", "answers": [["Flute", 5], ["Clarinet", 15], ["Oboe", 26], ["Bassoon", 36], ["Piccolo", 47], ["Bass clarinet", 57], ["Alto flute", 68], ["Bass flute", 78], ["English horn", 89, "Cor anglais"], ["E flat clarinet", 99, "Eb clarinet"], ["Contrabassoon", 100, "Double bassoon"]]},
+{"category": "Spaceflight", "prompt": "Name an astronaut who walked on the Moon.", "hint": "Use any of the twelve Apollo moonwalkers. Surnames count.", "fact": "Harrison Schmitt was a professional geologist before joining NASA.", "answers": [["Neil Armstrong", 5, "Armstrong"], ["Buzz Aldrin", 14, "Aldrin", "Edwin Aldrin"], ["Alan Shepard", 24, "Shepard"], ["Gene Cernan", 33, "Eugene Cernan", "Cernan"], ["Charles Conrad", 43, "Pete Conrad", "Conrad"], ["Alan Bean", 52, "Bean"], ["Edgar Mitchell", 61, "Mitchell"], ["David Scott", 71, "Scott"], ["James Irwin", 80, "Jim Irwin", "Irwin"], ["John Young", 90, "Young"], ["Charles Duke", 99, "Charlie Duke", "Duke"], ["Harrison Schmitt", 100, "Jack Schmitt", "Schmitt"]]},
+{"category": "Spaceflight", "prompt": "Name a NASA Space Shuttle orbiter.", "hint": "The atmospheric test vehicle also counts.", "fact": "Enterprise flew atmospheric approach and landing tests but never flew in space.", "answers": [["Columbia", 5], ["Challenger", 28], ["Discovery", 52], ["Atlantis", 76], ["Endeavour", 99, "Endeavor"], ["Enterprise", 100]]},
+{"category": "Basketball", "prompt": "Name an NBA team.", "hint": "Full names and team nicknames count.", "fact": "The Washington Wizards previously played as the Washington Bullets.", "answers": [["Los Angeles Lakers", 5, "Lakers"], ["Golden State Warriors", 8, "Warriors"], ["Boston Celtics", 12, "Celtics"], ["Chicago Bulls", 15, "Bulls"], ["New York Knicks", 18, "Knicks"], ["Miami Heat", 22, "Heat"], ["Cleveland Cavaliers", 25, "Cavaliers", "Cavs"], ["Dallas Mavericks", 28, "Mavericks", "Mavs"], ["LA Clippers", 32, "Los Angeles Clippers", "Clippers"], ["Brooklyn Nets", 35, "Nets", "New Jersey Nets"], ["Philadelphia 76ers", 39, "76ers", "Sixers"], ["Milwaukee Bucks", 42, "Bucks"], ["Denver Nuggets", 45, "Nuggets"], ["Phoenix Suns", 49, "Suns"], ["San Antonio Spurs", 52, "Spurs"], ["Houston Rockets", 55, "Rockets"], ["Oklahoma City Thunder", 59, "Thunder", "OKC"], ["Toronto Raptors", 62, "Raptors"], ["Memphis Grizzlies", 65, "Grizzlies"], ["Minnesota Timberwolves", 69, "Timberwolves", "Wolves"], ["New Orleans Pelicans", 72, "Pelicans"], ["Atlanta Hawks", 76, "Hawks"], ["Detroit Pistons", 79, "Pistons"], ["Sacramento Kings", 82, "Kings"], ["Portland Trail Blazers", 86, "Trail Blazers", "Blazers"], ["Orlando Magic", 89, "Magic"], ["Indiana Pacers", 92, "Pacers"], ["Utah Jazz", 96, "Jazz"], ["Charlotte Hornets", 99, "Hornets"], ["Washington Wizards", 100, "Wizards"]]},
+{"category": "Sport", "prompt": "Name a decathlon event.", "hint": "Use one of the ten standard men’s outdoor decathlon events.", "fact": "The 1,500 metres is the final event of the decathlon.", "answers": [["100 metres", 5, "100m", "100 meters"], ["Long jump", 17], ["Shot put", 28], ["High jump", 40], ["400 metres", 52, "400m", "400 meters"], ["110 metres hurdles", 64, "110m hurdles", "110 meter hurdles", "110 hurdles"], ["Discus throw", 76, "Discus"], ["Pole vault", 87], ["Javelin throw", 99, "Javelin"], ["1500 metres", 100, "1500m", "1500 meters"]]},
+{"category": "Chess", "prompt": "Name a classical world chess champion through 2024.", "hint": "Surnames count.", "fact": "Max Euwe won the world championship in 1935.", "answers": [["Magnus Carlsen", 5, "Carlsen"], ["Bobby Fischer", 11, "Fischer", "Robert Fischer"], ["Garry Kasparov", 17, "Kasparov"], ["Viswanathan Anand", 23, "Anand", "Vishy Anand"], ["Anatoly Karpov", 28, "Karpov"], ["Ding Liren", 34, "Ding"], ["Gukesh Dommaraju", 40, "Gukesh", "D Gukesh"], ["Vladimir Kramnik", 46, "Kramnik"], ["Boris Spassky", 52, "Spassky"], ["Mikhail Tal", 58, "Tal"], ["Mikhail Botvinnik", 64, "Botvinnik"], ["Tigran Petrosian", 70, "Petrosian"], ["Vasily Smyslov", 76, "Smyslov"], ["Alexander Alekhine", 81, "Alekhine"], ["José Raúl Capablanca", 87, "Capablanca"], ["Emanuel Lasker", 93, "Lasker"], ["Wilhelm Steinitz", 99, "Steinitz"], ["Max Euwe", 100, "Euwe"]]},
+{"category": "Kitchen", "prompt": "Name a pasta shape.", "hint": "Italian names and common English names count.", "fact": "Culurgiones are Sardinian stuffed pasta often closed with a braided seam.", "answers": [["Spaghetti", 5], ["Macaroni", 8], ["Penne", 12], ["Fusilli", 15], ["Lasagna", 18, "Lasagne"], ["Fettuccine", 22, "Fettucine"], ["Linguine", 25, "Linguini"], ["Farfalle", 28, "Bow ties", "Bow tie"], ["Rigatoni", 32], ["Ravioli", 35], ["Tortellini", 39], ["Rotini", 42], ["Tagliatelle", 45], ["Angel hair", 49, "Capellini"], ["Orzo", 52], ["Ziti", 55], ["Cannelloni", 59], ["Manicotti", 62], ["Bucatini", 65], ["Pappardelle", 69], ["Orecchiette", 72], ["Conchiglie", 76, "Shells"], ["Ditalini", 79], ["Gemelli", 82], ["Cavatappi", 86], ["Cavatelli", 89], ["Strozzapreti", 92], ["Mafaldine", 96], ["Radiatori", 99], ["Culurgiones", 100]]},
+{"category": "Kitchen", "prompt": "Name a cheese.", "hint": "Use a named cheese style.", "fact": "Vacherin is a name shared by several French and Swiss cheeses.", "answers": [["Cheddar", 5], ["Mozzarella", 8], ["Parmesan", 11, "Parmigiano Reggiano"], ["Swiss", 13, "Swiss cheese"], ["Brie", 16], ["Feta", 19], ["Gouda", 22], ["Cream cheese", 24], ["Cottage cheese", 27], ["Ricotta", 30], ["Paneer", 33], ["Provolone", 35], ["Monterey Jack", 38, "Jack"], ["Colby", 41], ["Blue cheese", 44], ["Camembert", 46], ["Gorgonzola", 49], ["Roquefort", 52], ["Stilton", 55], ["Gruyère", 58], ["Emmental", 60, "Emmentaler"], ["Edam", 63], ["Havarti", 66], ["Muenster", 69], ["Munster", 71], ["Manchego", 74], ["Pecorino", 77], ["Burrata", 80], ["Halloumi", 82], ["Mascarpone", 85], ["Fontina", 88], ["Taleggio", 91], ["Comté", 93], ["Cotija", 96], ["Cabrales", 99], ["Vacherin", 100]]},
+{"category": "Ocean life", "prompt": "Name a shark.", "hint": "Species and familiar shark groups count.", "fact": "The prickly dogfish has thorn-like structures in its skin.", "answers": [["Great white shark", 5, "Great white", "White shark", "Great white"], ["Hammerhead shark", 8, "Hammerhead", "Hammerhead"], ["Tiger shark", 11, "Tiger"], ["Bull shark", 15, "Bull"], ["Whale shark", 18, "Whale"], ["Nurse shark", 21, "Nurse"], ["Mako shark", 24, "Mako", "Mako"], ["Lemon shark", 28, "Lemon"], ["Blacktip shark", 31, "Blacktip"], ["Reef shark", 34, "Reef"], ["Basking shark", 37, "Basking"], ["Blue shark", 41, "Blue"], ["Thresher shark", 44, "Thresher"], ["Sand tiger shark", 47, "Sand tiger"], ["Greenland shark", 50, "Greenland"], ["Goblin shark", 54, "Goblin"], ["Frilled shark", 57, "Frilled"], ["Megamouth shark", 60, "Megamouth"], ["Cookiecutter shark", 63, "Cookiecutter"], ["Wobbegong", 67], ["Zebra shark", 70, "Zebra"], ["Epaulette shark", 73, "Epaulette"], ["Port Jackson shark", 76, "Port Jackson"], ["Angel shark", 80, "Angel"], ["Horn shark", 83, "Horn"], ["Bonnethead shark", 86, "Bonnethead"], ["Silky shark", 89, "Silky"], ["Oceanic whitetip shark", 93, "Oceanic whitetip"], ["Porbeagle", 96], ["Bramble shark", 99, "Bramble"], ["Prickly dogfish", 100]]},
+{"category": "Ocean life", "prompt": "Name a living sea turtle species.", "hint": "Use one of the seven living species.", "fact": "The flatback nests on Australian beaches.", "answers": [["Green sea turtle", 5, "Green turtle", "Green"], ["Loggerhead sea turtle", 24, "Loggerhead", "Loggerhead"], ["Leatherback sea turtle", 43, "Leatherback", "Leatherback"], ["Hawksbill sea turtle", 61, "Hawksbill", "Hawksbill"], ["Olive ridley sea turtle", 80, "Olive ridley", "Olive ridley"], ["Kemp’s ridley sea turtle", 99, "Kemps ridley", "Kemp’s ridley"], ["Flatback sea turtle", 100, "Flatback", "Flatback"]]},
+{"category": "Ocean life", "prompt": "Name a living penguin species.", "hint": "Common English names count.", "fact": "The erect-crested penguin breeds on subantarctic islands south of New Zealand.", "answers": [["Emperor penguin", 5, "Emperor"], ["King penguin", 11, "King"], ["Adélie penguin", 16, "Adélie"], ["Gentoo penguin", 22, "Gentoo"], ["Chinstrap penguin", 27, "Chinstrap"], ["Little penguin", 33, "Fairy penguin", "Blue penguin", "Little"], ["Macaroni penguin", 38, "Macaroni"], ["Rockhopper penguin", 44, "Rockhopper"], ["Southern rockhopper penguin", 49, "Southern rockhopper"], ["Northern rockhopper penguin", 55, "Northern rockhopper"], ["African penguin", 60, "Jackass penguin", "African"], ["Galápagos penguin", 66, "Galápagos"], ["Humboldt penguin", 71, "Humboldt"], ["Magellanic penguin", 77, "Magellanic"], ["Yellow-eyed penguin", 82, "Hoiho", "Yellow-eyed"], ["Royal penguin", 88, "Royal"], ["Fiordland penguin", 93, "Tawaki", "Fiordland"], ["Snares penguin", 99, "Snares"], ["Erect-crested penguin", 100, "Erect-crested"]]},
+{"category": "Atlas", "prompt": "Name a country bordering Germany.", "hint": "Give one of its nine land neighbors.", "fact": "Luxembourg shares part of its eastern border with Germany along the Moselle.", "answers": [["France", 5], ["Austria", 18], ["Poland", 32], ["Netherlands", 45, "Holland"], ["Switzerland", 59], ["Belgium", 72], ["Denmark", 86], ["Czechia", 99, "Czech Republic"], ["Luxembourg", 100]]},
+{"category": "Atlas", "prompt": "Name a country bordering India by land.", "hint": "Use countries sharing an administered border with India.", "fact": "Myanmar meets India along several northeastern Indian states.", "answers": [["China", 5], ["Pakistan", 28], ["Bangladesh", 52], ["Nepal", 76], ["Bhutan", 99], ["Myanmar", 100, "Burma"]]},
+{"category": "Games", "prompt": "Name a standard Tetris piece.", "hint": "Letter shapes or traditional names count.", "fact": "The Z and S tetrominoes are mirror images of each other.", "answers": [["I", 5, "Straight piece", "Line"], ["O", 24, "Square", "Block"], ["T", 43, "T piece"], ["L", 61, "L piece"], ["J", 80, "J piece"], ["S", 99, "S piece"], ["Z", 100, "Z piece"]]},
+{"category": "Music", "prompt": "Name a traditional Western church mode.", "hint": "Use one of the seven diatonic mode names.", "fact": "Locrian has a diminished fifth above its starting note.", "answers": [["Ionian", 5, "Major"], ["Aeolian", 24, "Natural minor"], ["Dorian", 43], ["Phrygian", 61], ["Lydian", 80], ["Mixolydian", 99], ["Locrian", 100]]},
+{"category": "Meteorology", "prompt": "Name a cloud genus.", "hint": "Use one of the ten standard genera.", "fact": "Cirrocumulus appears as small high cloudlets, often arranged in ripples.", "answers": [["Cumulus", 5], ["Stratus", 17], ["Cirrus", 28], ["Cumulonimbus", 40], ["Nimbostratus", 52], ["Stratocumulus", 64], ["Altostratus", 76], ["Altocumulus", 87], ["Cirrostratus", 99], ["Cirrocumulus", 100]]}
+];
+const el = id => document.getElementById(id);
+const format = n => n.toLocaleString('en-US');
+const normalize = name => name.trim().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+  .replace(/&/g,'and').replace(/×/g,'x').replace(/[^a-z0-9]/g,'');
+for (const card of bank) {
+  card.index = new Map();
+  for (const [name, points, ...aliases] of card.answers) {
+    for (const label of [name, ...aliases]) {
+      card.index.set(normalize(label), {name, points});
+    }
+  }
+}
+const tiers = [
+  [0,'No score','⬛','#b2c6c9'], [30,'Common','🟦','#a7d2f8'],
+  [60,'Uncommon','🟩','#93ddb7'], [89,'Rare','🟪','#c6b1f9'],
+  [99,'Deep Cut','🟧','#f8bf88'], [100,'One in a Krillion','🟨','#e5fa97']
+];
+const rank = points => tiers.find(row => points <= row[0]);
+const zones = [
+  [6000,'Hadal Trench','#15192d'], [4000,'Abyssal Zone','#1b233b'],
+  [1000,'Midnight Zone','#18314a'], [200,'Twilight Zone','#205066'], [0,'Sunlight Zone','#2a6971']
+];
+const threshold = n => Math.min(80, 40 + 5 * Math.floor(n/5));
+const recordKey = 'krillion-clone-best-v1';
+let mode = 'five', phase = 'menu', pool = [], active, log = [], score = 0, tanks = 3;
+let deadline = 0, interval = 0, best = 0, shownDepth = 0, frame = 0;
+try {
+  const saved = Number(localStorage.getItem(recordKey));
+  if (Number.isFinite(saved) && saved > 0) best = saved;
+} catch {}
+el('best').textContent = format(best) + ' m';
+function showDepth(meters) {
+  cancelAnimationFrame(frame);
+  const [boundary, name, color] = zones.find(z => meters >= z[0]);
+  el('zone').textContent = name;
+  el('scene').style.setProperty('--water', color);
+  el('scene').style.setProperty('--sub-y', (38 + 31 * Math.min(meters/6000,1)) + '%');
+  const from = shownDepth, start = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now-start)/850);
+    shownDepth = Math.round(meters + (from-meters)*Math.pow(1-t,3));
+    el('depth').textContent = format(shownDepth);
+    if (t < 1) frame = requestAnimationFrame(step);
+  }
+  if (!meters || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    shownDepth = meters;
+    el('depth').textContent = format(meters);
+  } else frame = requestAnimationFrame(step);
+}
+function setMode(value) {
+  mode = value;
+  for (const id of ['five','infinity']) el(id).setAttribute('aria-pressed',String(id===mode));
+}
+function draw() {
+  if (!pool.length) {
+    pool = [...bank];
+    for (let i=pool.length-1; i>0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [pool[i],pool[j]] = [pool[j],pool[i]];
+    }
+    if (pool.at(-1)===active) [pool[0],pool[pool.length-1]] = [pool[pool.length-1],pool[0]];
+  }
+  return pool.pop();
+}
+function oxygen(target) {
+  el('oxygen').hidden = mode !== 'infinity';
+  el('oxygen').textContent = 'Oxygen ' + '▰'.repeat(tanks) + '▱'.repeat(3-tanks) +
+    ' · ' + tanks + '/3 tanks · Target ' + target + '+ points';
+}
+function start() {
+  score = 0; tanks = 3; log = []; pool = []; active = null;
+  el('layout').hidden = false;
+  el('layout').classList.add('play');
+  el('menu').hidden = true;
+  el('summary').hidden = true;
+  el('game').hidden = false;
+  showDepth(0);
+  nextRound();
+}
+function nextRound() {
+  if ((mode === 'five' && log.length === 5) || tanks === 0) return finish();
+  clearInterval(interval);
+  active = draw();
+  phase = 'question';
+  el('round').textContent = mode==='five' ? 'Round '+(log.length+1)+' / 5' : 'Infinity · Round '+(log.length+1);
+  el('category').textContent = active.category;
+  el('prompt').textContent = active.prompt;
+  el('hint').textContent = active.hint;
+  el('guess').value = ''; el('error').textContent = '';
+  el('result').hidden = true; el('question').hidden = false;
+  oxygen(threshold(log.length));
+  deadline = Date.now()+25000;
+  tick();
+  interval = setInterval(tick,50);
+  el('guess').focus({preventScroll:true});
+}
+function tick() {
+  if (phase !== 'question') return;
+  const ms = Math.max(0,deadline-Date.now());
+  el('time').textContent = Math.ceil(ms/1000)+'s';
+  el('bar').style.transform = 'scaleX('+ms/25000+')';
+  el('bar').style.background = ms <= 5000 ? '#ffaf89' : '#91e2d1';
+  if (!ms) resolve(null);
+}
+function resolve(entry) {
+  if (phase !== 'question') return;
+  phase = 'result'; clearInterval(interval);
+  const points = entry?.points ?? 0;
+  const name = entry?.name ?? 'Time ran out';
+  const [,tier,,color] = rank(points);
+  const target = threshold(log.length);
+  const lost = mode === 'infinity' && points < target;
+  if (lost) tanks--;
+  score += points;
+  log.push({prompt:active.prompt,name,points,tier});
+  showDepth(score*10);
+  if (score*10 > best) {
+    best = score*10;
+    try {localStorage.setItem(recordKey,String(best))} catch {}
+    el('best').textContent = format(best)+' m';
+  }
+  el('question').hidden = true; el('result').hidden = false;
+  el('tier').textContent = tier; el('tier').style.color = color;
+  el('answer').textContent = name;
+  el('earned').textContent = '+'+points+' pts';
+  let feedback = 'Your submarine descended '+format(points*10)+' meters.';
+  if (points===100) feedback = active.fact;
+  if (!entry) feedback = 'One deep answer was '+active.answers.find(a=>a[1]===100)[0]+'.';
+  if (lost) feedback += ' You used one oxygen tank.';
+  el('fact').textContent = feedback;
+  oxygen(target);
+  el('next').textContent = (mode==='five' && log.length===5) || !tanks ? 'View dive log ↗' : 'Next round ↓';
+  if (!el('quit').open && !el('rules').open) el('next').focus({preventScroll:true});
+}
+el('form').onsubmit = event => {
+  event.preventDefault();
+  if (phase !== 'question') return;
+  if (Date.now() >= deadline) return resolve(null);
+  const key = normalize(el('guess').value);
+  const entry = active.index.get(key) || active.index.get(key.replace(/ies$/,'y')) ||
+    active.index.get(key.replace(/s$/,'')) || active.index.get(key+'s');
+  if (entry) return resolve(entry);
+  el('error').textContent = 'Not recognized—try again!';
+  el('guess').classList.remove('shake');
+  void el('guess').offsetWidth;
+  el('guess').classList.add('shake');
+  el('guess').select();
+};
+function finish() {
+  clearInterval(interval); phase = 'summary';
+  el('quit').close(); el('layout').hidden = true; el('summary').hidden = false;
+  el('summaryTitle').textContent = format(score*10)+' meters';
+  el('total').textContent = (mode==='five'?'5-Round Dive':'Infinity Mode') + ' · '+score+' points · '+
+    log.length+' rounds completed · '+zones.find(z=>score*10>=z[0])[1];
+  el('rows').replaceChildren();
+  for (const {prompt,name,tier,points} of log) {
+    const row = el('rows').insertRow();
+    for (const value of [prompt,name,tier,points]) row.insertCell().textContent = value;
+  }
+  el('copyStatus').textContent=''; el('copyText').hidden=true;
+  el('again').focus({preventScroll:true});
+}
+async function share() {
+  const cells = log.map(r=>rank(r.points)[2]);
+  const grid = [];
+  for(let i=0;i<cells.length;i+=5) grid.push(cells.slice(i,i+5).join(''));
+  const text = ['Krillion · '+(mode==='five'?'5-Round Dive':'Infinity Mode'),
+    format(score*10)+' m · '+score+' pts · '+log.length+' rounds',...grid].join('\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    el('copyStatus').textContent = 'Dive log copied.';
+  } catch {
+    el('copyText').hidden = false; el('copyText').value=text; el('copyText').select();
+    let copied=false;
+    try {copied=document.execCommand('copy')} catch {}
+    el('copyStatus').textContent = copied ? 'Dive log copied.' : 'Copy the selected dive log below.';
+  }
+}
+el('five').onclick = () => setMode('five');
+el('infinity').onclick = () => setMode('infinity');
+el('start').onclick = el('again').onclick = start;
+el('next').onclick = nextRound;
+el('end').onclick = () => el('quit').showModal();
+el('cancel').onclick = () => el('quit').close();
+el('confirm').onclick = finish;
+el('share').onclick = share;
+el('home').onclick = () => {
+  phase='menu'; el('layout').classList.remove('play'); el('layout').hidden=false;
+  el('menu').hidden=false; el('game').hidden=true; el('summary').hidden=true;
+  showDepth(0); el('start').focus({preventScroll:true});
+};
+el('help').onclick=()=>el('rules').showModal();
+el('closeRules').onclick=()=>el('rules').close();
+el('inventory').textContent=bank.length+' prompts · '+format(bank.reduce((n,c)=>n+c.answers.length,0))+' scored answers, plus aliases.';
+document.addEventListener('visibilitychange',()=>{if(!document.hidden) tick()});
+window.addEventListener('pageshow',tick);
+for(let i=0;i<18;i++) {
+  const bubble=document.createElement('i');
+  bubble.className='bubble'; bubble.setAttribute('aria-hidden','true');
+  const sizes={'--x':(i*37%100)+'%','--s':(2+i%5)+'px','--d':(-i*2)+'s','--t':(12+i%6*2)+'s'};
+  for(const [key,value] of Object.entries(sizes)) bubble.style.setProperty(key,value);
+  el('scene').append(bubble);
+}
+</script>
+</body>
+</html>
